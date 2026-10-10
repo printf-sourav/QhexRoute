@@ -1,0 +1,8 @@
+# Runtime dependencies for the FastAPI service on Vercel.
+# Development/test-only dependencies remain in backend/requirements.txt.
+fastapi>=0.115.0
+networkx>=3.2
+h3>=4.1.0
+numpy>=2.0.0
+shapely>=2.0.0
+pydantic>=2.9.0

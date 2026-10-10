@@ -24,6 +24,7 @@ Repository: <https://github.com/printf-sourav/QhexRoute>
 - [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Quick start](#quick-start)
+- [Deploy to Vercel](#deploy-to-vercel)
 - [Running the dashboard](#running-the-dashboard)
 - [API](#api)
 - [Configuration](#configuration)
@@ -232,6 +233,98 @@ npm run dev:frontend
 ```
 
 The Vite development server proxies `/api` requests to the FastAPI service.
+
+## Deploy to Vercel
+
+The repository includes a Vercel Services configuration that deploys the two
+parts of Q-HexRoute together under one Vercel project and one domain:
+
+- the `frontend` service builds the Vite application and serves static assets;
+- the `backend` service runs the FastAPI application as a Python service; and
+- `/api/*` is routed to FastAPI while all other paths are routed to the Vite
+  frontend.
+
+This is configured in [`vercel.json`](vercel.json). The backend service includes
+the checked-in `data/demo/roads.graphml` fixture in its function bundle, so
+production requests use the same bounded OSM graph as local requests.
+
+### Deploy from the Vercel dashboard
+
+1. Sign in to Vercel.
+2. Select **Add New → Project**.
+3. Import `printf-sourav/QhexRoute` from GitHub.
+4. Keep the repository root as the project root. Do not set `frontend/` as the
+   project root; the root `vercel.json` defines both services.
+5. Deploy the project.
+
+Every push to `main` can then create a new production deployment, depending on
+the Git integration settings.
+
+### Deploy with the Vercel CLI
+
+Install or run the CLI, authenticate once, and deploy from the repository root:
+
+```bash
+npm install -g vercel
+vercel login
+vercel link
+vercel --prod
+```
+
+For a non-interactive CI deployment, use a Vercel token supplied through the CI
+secret store rather than committing it:
+
+```bash
+vercel --token "$VERCEL_TOKEN" --prod
+```
+
+Do not put `VERCEL_TOKEN` in `.env.example`, source files, git history, or build
+logs.
+
+### Vercel environment variables
+
+The default production configuration works without application secrets. Add
+these variables in **Project Settings → Environment Variables** only when you
+want to override the defaults:
+
+| Variable | Suggested production value | Scope |
+| --- | --- | --- |
+| `QHEXROUTE_USE_OSM_GRAPH` | `1` | Backend / Production, Preview, Development as needed |
+| `QHEXROUTE_ENABLE_QAOA` | `0` | Backend; keep off unless optional Qiskit dependencies are deliberately added |
+| `QHEXROUTE_QAOA_VARIABLE_CAP` | `12` | Backend |
+| `QHEXROUTE_QAOA_TIMEOUT_SECONDS` | `15` | Backend |
+| `VITE_OSM_TILE_URL` | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` | Frontend build |
+
+`VITE_API_BASE` should remain empty for the combined deployment because the
+frontend calls the same-domain `/api` routes. If the backend is deployed as a
+separate project, set `VITE_API_BASE` to that backend's HTTPS URL and redeploy
+the frontend.
+
+### Production smoke checks
+
+After Vercel reports the deployment as ready, replace `<deployment-url>` with
+the generated HTTPS URL:
+
+```bash
+curl https://<deployment-url>/api/health
+curl 'https://<deployment-url>/api/scenario?seed=42'
+```
+
+The health response should report `status: "ok"`. The scenario response should
+report `graph_source: "openstreetmap"` when the bundled fixture loaded
+successfully. Open the root URL in a browser and verify that the map keeps the
+visible OpenStreetMap attribution and that the **Run re-optimization** flow
+completes.
+
+### Vercel deployment notes
+
+- Vercel Functions are stateless between invocations; completed runs in
+  `/api/runs/{run_id}` are held in memory and are not durable storage.
+- The optional QAOA path is not part of the default production dependency set.
+- The OSM raster basemap still requires outbound browser access to the tile
+  provider and must follow the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+- The backend's maximum function duration is configured for 60 seconds in
+  `vercel.json`; the available limit still depends on the Vercel plan.
 
 ## Running the dashboard
 

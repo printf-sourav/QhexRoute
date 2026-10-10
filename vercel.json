@@ -1,0 +1,49 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend/",
+      "framework": "vite",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
+    },
+    "backend": {
+      "root": ".",
+      "framework": "fastapi",
+      "entrypoint": "backend.app.main:app",
+      "functions": {
+        "backend/app/main.py": {
+          "maxDuration": 60,
+          "includeFiles": "data/demo/roads.graphml",
+          "excludeFiles": "{frontend/**,docs/**,backend/tests/**,**/*.test.py,**/test_*.py,*.md}"
+        }
+      }
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+# Optional local quantum execution. The app remains runnable without this stack
+# and visibly falls back to an exact/classical result if it is unavailable.
+qiskit>=1.2.0
+qiskit-aer>=0.15.0
+qiskit-algorithms>=0.3.0
+qiskit-optimization>=0.6.0

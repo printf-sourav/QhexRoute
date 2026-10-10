@@ -1,0 +1,20 @@
+{
+  "name": "q-hexroute",
+  "private": true,
+  "version": "0.1.0",
+  "description": "H3-localized hybrid routing lab",
+  "scripts": {
+    "install:all": "npm --prefix frontend install",
+    "dev": "concurrently -k \"npm --prefix frontend run dev\" \"node scripts/python-run.mjs -m uvicorn backend.app.main:app --reload --port 8000\"",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "node scripts/python-run.mjs -m uvicorn backend.app.main:app --reload --port 8000",
+    "build": "npm --prefix frontend run build",
+    "check": "npm --prefix frontend run check",
+    "test": "node scripts/python-run.mjs -m pytest backend/tests",
+    "test:browser": "npm --prefix frontend run test:browser",
+    "setup": "node scripts/python-run.mjs -m pip install -r backend/requirements.txt && npm run install:all"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,0 +1,2 @@
+# Needed when loading or refreshing the checked-in OSMnx GraphML road fixture.
+osmnx>=2.0.0
